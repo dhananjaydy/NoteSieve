@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">NoteSieve</string>
+    <string name="all">All</string>
+    <string name="grouped">Grouped</string>
+    <string name="starred">Starred</string>
+    <string name="timestamp_to_date_time_format">yyyy-MM-dd HH:mm:ss</string>
+    <string name="search_the_starred_notifications">Search starred notifications</string>
+    <string name="no_starred_notifications_available_yet">No starred Notifications available yet</string>
+    <string name="no_notifications_available_yet">No Notifications available yet</string>
+    <string name="search_all_notifications">Search all notifications</string>
+    <string name="hello">Hello</string>
+    <string name="notifications">%1$s Notifications</string>
+    <string name="unknown">Unknown</string>
+    <string name="search_installed_apps">Search installed apps</string>
+    <string name="search_notifications_in_selected_app">Search notifications in %1$s</string>
+    <string name="you_ll_be_redirected_to_the_system_settings_please_enable_the_permission_for_our_app">You\'ll be redirected to the system settings. Please enable the permission for our app.</string>
+    <string name="we_need_access_to_your_notifications_to_provide_better_service">We need access to your notifications to provide better service.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="next">Next</string>
+    <string name="no_notifications_with_given_search_query_present_in_the_clicked_app">No notifications with given search query present in the clicked app.</string>
+    <string name="no_notifications_available_with_the_given_search_query">No notifications available with the given search query: %1$s</string>
+    <string name="copy">Copy</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
+</resources>
