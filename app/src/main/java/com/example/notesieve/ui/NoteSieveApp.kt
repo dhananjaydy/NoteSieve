@@ -1,19 +1,17 @@
-package com.example.notesieve.ui.homescreen.composables
+package com.example.notesieve.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.notesieve.ui.homescreen.composables.subscreens.NoteSieveScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.notesieve.ui.permissionscreen.PermissionCheckerScreen
 import com.example.notesieve.ui.permissionscreen.PermissionViewModel
 
 @Composable
 fun NoteSieveApp(viewModel: PermissionViewModel = hiltViewModel()) {
 
-    val isPermissionGranted by viewModel.permissionState.collectAsState()
-    val permissionState by viewModel.currentStep.collectAsState()
+    val isPermissionGranted by viewModel.permissionState.collectAsStateWithLifecycle()
+    val permissionState by viewModel.currentStep.collectAsStateWithLifecycle()
 
     if (isPermissionGranted) {
         NoteSieveScreen()
@@ -25,5 +23,4 @@ fun NoteSieveApp(viewModel: PermissionViewModel = hiltViewModel()) {
             permissionGranted = { viewModel.updatePermissionState() }
         )
     }
-
 }

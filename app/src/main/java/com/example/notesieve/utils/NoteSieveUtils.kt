@@ -13,6 +13,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// this should ideally be fetched from a remote source but will keep it constant for the time being
+const val FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfyBY2IPc0Jl1CId_Pto9WlVPPk14y-a61CLkfr1SfDHRw4TA/viewform?vc=0&c=0&w=1&flr=0"
+
 fun Drawable.toBitmap(): Bitmap {
 
     if (this is BitmapDrawable) {
@@ -35,8 +38,9 @@ fun Context.epochLongToString(timestamp: Long): String {
     return formatter.format(date)
 }
 
-fun String.getAppName(packageManager: PackageManager): String {
+fun String.getAppName(context: Context): String {
     return try {
+        val packageManager = context.applicationContext.packageManager
         val applicationInfo = packageManager.getApplicationInfo(this, 0)
         packageManager.getApplicationLabel(applicationInfo).toString()
     } catch (e: PackageManager.NameNotFoundException) {

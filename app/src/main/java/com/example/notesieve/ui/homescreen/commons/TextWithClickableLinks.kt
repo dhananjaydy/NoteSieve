@@ -1,4 +1,4 @@
-package com.example.notesieve.ui.homescreen.composables.commons
+package com.example.notesieve.ui.homescreen.commons
 
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.Composable

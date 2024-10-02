@@ -1,4 +1,4 @@
-package com.example.notesieve.ui.homescreen.composables.commons
+package com.example.notesieve.ui.homescreen.commons
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding

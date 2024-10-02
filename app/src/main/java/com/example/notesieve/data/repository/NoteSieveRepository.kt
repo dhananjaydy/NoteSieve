@@ -6,18 +6,22 @@ import com.example.notesieve.data.local.AppModel
 import com.example.notesieve.data.local.NoteSieveDao
 import com.example.notesieve.data.local.NoteSieveEntity
 import com.example.notesieve.utils.toBitmap
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import javax.inject.Named
 
 
 class NoteSieveRepositoryImpl @Inject constructor(
     private val noteSieveDao: NoteSieveDao,
-    private val appPackageManager: PackageManager
+    private val appPackageManager: PackageManager,
+    @Named("IoDispatcher") private val ioDispatcher: CoroutineDispatcher,
+    @Named("DefaultDispatcher") private val defaultDispatcher: CoroutineDispatcher
 ) : NoteSieveRepository {
 
     override fun getAllNotifications(): Flow<List<NoteSieveEntity>> {
@@ -37,7 +41,7 @@ class NoteSieveRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addNotification(notification: NoteSieveEntity) {
-        withContext(Dispatchers.IO) { noteSieveDao.addNotification(notification) }
+        withContext(ioDispatcher) { noteSieveDao.addNotification(notification) }
     }
 
     override fun getAppModels(): Flow<List<AppModel>> {
@@ -52,14 +56,18 @@ class NoteSieveRepositoryImpl @Inject constructor(
                     packageName = appModelData.packageName,
                     appName = appModelData.appName,
                     icon = appIcon,
-                    notificationCount = appModelData.notificationCount
+                    notificationCount = appModelData.notificationCount,
+                    key = generateCustomKey(
+                        packageName = appModelData.packageName,
+                        notificationCount = appModelData.notificationCount
+                    )
                 )
             }.sortedBy { it.appName }
         }
     }
 
     override suspend fun fetchNotificationsForApp(packageName: String): List<NoteSieveEntity> {
-        return withContext(Dispatchers.IO) {
+        return withContext(defaultDispatcher) {
             packageName.let { name ->
                 getAllNotifications().first().filter { it.packageName == name }
             }
@@ -67,11 +75,25 @@ class NoteSieveRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteNotification(notificationId: Int) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             noteSieveDao.deleteNotification(notificationId)
         }
     }
+
+    override fun getAppNamesWithNotifications(): Flow<List<String>> {
+        return noteSieveDao.getAppNamesWithNotifications().flowOn(ioDispatcher)
+    }
+
+    override suspend fun deleteNotificationsForApps(packageNames: List<String>, startTime: Long): Int {
+        return withContext(ioDispatcher) {
+            noteSieveDao.deleteNotificationsForApps(packageNames, startTime)
+        }
+    }
 }
+
+private fun generateCustomKey(packageName: String, notificationCount: Int) =
+    "$packageName:${System.currentTimeMillis()}:$notificationCount"
+
 
 interface NoteSieveRepository {
 
@@ -83,4 +105,6 @@ interface NoteSieveRepository {
     fun getAppModels(): Flow<List<AppModel>>
     suspend fun fetchNotificationsForApp(packageName: String): List<NoteSieveEntity>
     suspend fun deleteNotification(notificationId: Int)
+    fun getAppNamesWithNotifications(): Flow<List<String>>
+    suspend fun deleteNotificationsForApps(packageNames: List<String>, startTime: Long): Int
 }

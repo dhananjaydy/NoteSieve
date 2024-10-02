@@ -1,4 +1,4 @@
-package com.example.notesieve.ui.homescreen.composables.commons
+package com.example.notesieve.ui.homescreen.commons
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager

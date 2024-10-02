@@ -30,4 +30,9 @@ interface NoteSieveDao {
     @Query("DELETE FROM notifications_table WHERE id = :notificationId")
     suspend fun deleteNotification(notificationId: Int)
 
+    @Query("SELECT DISTINCT appName FROM notifications_table ORDER BY appName ASC")
+    fun getAppNamesWithNotifications(): Flow<List<String>>
+
+    @Query("DELETE FROM notifications_table WHERE packageName IN (:appPackageNames) AND timestamp >= :startTime")
+    suspend fun deleteNotificationsForApps(appPackageNames: List<String>, startTime: Long): Int
 }

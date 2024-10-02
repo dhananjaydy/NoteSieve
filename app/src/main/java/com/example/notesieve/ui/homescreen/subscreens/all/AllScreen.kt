@@ -1,17 +1,17 @@
-package com.example.notesieve.ui.homescreen.composables.subscreens
+package com.example.notesieve.ui.homescreen.subscreens.all
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.example.notesieve.R
-import com.example.notesieve.UiState
-import com.example.notesieve.ui.homescreen.composables.commons.FullScreenLoader
-import com.example.notesieve.ui.homescreen.composables.commons.NotificationsEmptyScreen
-import com.example.notesieve.ui.homescreen.composables.commons.NotificationsSuccessScreen
+import com.example.notesieve.UiListState
+import com.example.notesieve.ui.homescreen.commons.FullScreenLoader
+import com.example.notesieve.ui.homescreen.commons.NotificationsEmptyScreen
+import com.example.notesieve.ui.homescreen.commons.NotificationsSuccessScreen
 import com.example.notesieve.ui.homescreen.viewmodel.UiDataState
 
 @Composable
-fun StarredScreen(
-    screenState: UiDataState<UiState>,
+fun AllScreen(
+    screenState: UiDataState<UiListState>,
     onStarClick: (Int, Boolean) -> Unit,
     onSearch: (String) -> Unit,
     onShareClick: (String) -> Unit,
@@ -23,13 +23,15 @@ fun StarredScreen(
     when (screenState) {
         is UiDataState.Empty -> {
             val query = screenState.uiState.searchQuery
+
             NotificationsEmptyScreen(
                 query = query,
                 onSearch = onSearch,
-                hint = stringResource(id = R.string.search_the_starred_notifications),
-                errorMessage = stringResource(id = R.string.no_starred_notifications_available_yet)
+                hint = stringResource(id = R.string.search_all_notifications),
+                errorMessage = stringResource(id = R.string.no_notifications_available_yet)
             )
         }
+
         UiDataState.Loading -> {
             FullScreenLoader()
         }
@@ -47,9 +49,10 @@ fun StarredScreen(
                 onCopyClick = onCopyClick,
                 onDeleteClick = onDeleteClick,
                 onBodyClick = onBodyClick,
-                hint = stringResource(id = R.string.search_the_starred_notifications),
-                errorMessage = stringResource(id = R.string.no_starred_notifications_available_yet)
+                hint = stringResource(id = R.string.search_all_notifications),
+                errorMessage = stringResource(id = R.string.no_notifications_available_yet)
             )
         }
     }
 }
+

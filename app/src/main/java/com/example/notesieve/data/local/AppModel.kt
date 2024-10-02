@@ -8,7 +8,8 @@ data class AppModel(
     val packageName: String,
     val appName: String,
     val icon: ImageBitmap?,
-    val notificationCount: Int
+    val notificationCount: Int,
+    val key: String
 )
 
 @Stable

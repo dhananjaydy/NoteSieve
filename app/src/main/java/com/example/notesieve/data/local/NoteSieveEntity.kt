@@ -1,7 +1,6 @@
 package com.example.notesieve.data.local
 
 import androidx.compose.runtime.Stable
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -25,10 +24,10 @@ data class NoteSieveModel(
     val timestamp: Long,
     val packageName: String,
     val isFavorite: Boolean,
-    val showOptions: Boolean = false
+    val showOptions: Boolean
 )
 
-fun NoteSieveEntity.asNoteSieveModel(): NoteSieveModel =
+fun NoteSieveEntity.asNoteSieveModel2(ifShow: Boolean): NoteSieveModel =
     NoteSieveModel(
         id = id,
         appName = appName,
@@ -36,6 +35,7 @@ fun NoteSieveEntity.asNoteSieveModel(): NoteSieveModel =
         notificationContent = notificationContent,
         timestamp = timestamp,
         packageName = packageName,
-        isFavorite = isFavorite
+        isFavorite = isFavorite,
+        showOptions = ifShow
     )
 
