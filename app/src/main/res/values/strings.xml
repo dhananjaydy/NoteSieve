@@ -30,4 +30,13 @@
     <string name="no_app_available_with_given_search_query">No app available with given search query</string>
     <string name="let_us_know_about_bugs_feature_requests_or_suggestions_by_clicking_the_button_below_to_open_the_feedback_form">Let us know about bugs, feature requests, or suggestions by clicking the button below to open the feedback form.</string>
     <string name="open_the_form">Open the form</string>
+    <string name="select_apps">Select Apps</string>
+    <string name="unknown_app">Unknown App</string>
+    <string name="appiconloader">AppIconLoader</string>
+    <string name="package_not_found">Package not found: %1$s</string>
+    <string name="error_loading_icon">Error Loading Icon</string>
+    <string name="today_at">Today at %1$s</string>
+    <string name="yesterday_at">Yesterday at %1$s</string>
+    <string name="at">%1$s at %2$s</string>
+    <string name="mmm_d_yyyy_at_h_mm_a">MMM d yyyy \'at\' h:mm a</string>
 </resources>

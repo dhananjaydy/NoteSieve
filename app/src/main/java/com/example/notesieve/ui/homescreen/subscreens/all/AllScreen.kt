@@ -17,6 +17,7 @@ fun AllScreen(
     onShareClick: (String) -> Unit,
     onCopyClick: (String) -> Unit,
     onDeleteClick: (Int) -> Unit,
+    onUrlClick: (String) -> Unit,
     onBodyClick: (Int, Boolean) -> Unit
 ) {
 
@@ -49,6 +50,7 @@ fun AllScreen(
                 onCopyClick = onCopyClick,
                 onDeleteClick = onDeleteClick,
                 onBodyClick = onBodyClick,
+                onUrlClick = onUrlClick,
                 hint = stringResource(id = R.string.search_all_notifications),
                 errorMessage = stringResource(id = R.string.no_notifications_available_yet)
             )

@@ -32,7 +32,7 @@ object ProvidesModule  {
             NoteSieveDatabase::class.java,
             "notification_database"
         )
-        .fallbackToDestructiveMigrationOnDowngrade()
+        .fallbackToDestructiveMigrationOnDowngrade(false)
         .build()
         return instance
     }

@@ -24,8 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.notesieve.R
 import com.example.notesieve.utils.toBitmap
 
 @Composable
@@ -45,7 +47,10 @@ fun AppIcon(
             val applicationInfo: ApplicationInfo = packageManager.getApplicationInfo(packageName, 0)
             packageManager.getApplicationIcon(applicationInfo)
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e("AppIconLoader", "Package not found: $packageName")
+            Log.e(
+                context.getString(R.string.appiconloader),
+                context.getString(R.string.package_not_found, packageName)
+            )
             isError = true
             null
         }
@@ -61,7 +66,7 @@ fun AppIcon(
             isError -> {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Error Loading Icon",
+                    contentDescription = stringResource(R.string.error_loading_icon),
                     tint = Color.Red,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -71,7 +76,11 @@ fun AppIcon(
                     try {
                         icon?.toBitmap()?.asImageBitmap()
                     } catch (e: Exception) {
-                        Log.e("AppIconLoader", "Failed to convert drawable to bitmap", e)
+                        Log.e(
+                            "AppIconLoader",
+                            "Failed to convert drawable to bitmap",
+                            e
+                        )
                         null
                     }
                 }

@@ -68,6 +68,7 @@ fun DeleteScreen(
 
             val successState: DeleteScreenUiState =
                 (uiState as UiDataState.Success<DeleteScreenUiState>).uiState
+
             Column(modifier = Modifier.padding(16.dp)) {
 
                 var expandedDropdown by remember { mutableStateOf(false) }
@@ -116,7 +117,10 @@ fun DeleteScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Select Apps", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(R.string.select_apps),
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
@@ -199,7 +203,7 @@ fun DeleteScreen(
                     },
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Delete")
+                    Text(text = stringResource(R.string.delete))
                 }
             }
         }
@@ -256,13 +260,24 @@ fun DeleteScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(R.string.no_app_available_with_given_search_query),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .wrapContentSize(Alignment.Center)
-                )
-
+                if (emptyState.searchQuery.isNotEmpty()) {
+                    Text(
+                        text = stringResource(
+                            R.string.no_app_available_with_given_search_query,
+                            emptyState.searchQuery
+                        ),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .wrapContentSize(Alignment.Center)
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.no_notifications_available_yet),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .wrapContentSize(Alignment.Center)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

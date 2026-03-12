@@ -30,6 +30,7 @@ fun GroupedByAppsScreen(
     onCopyClick: (String) -> Unit,
     onDeleteClick: (Int) -> Unit,
     resetQuery: () -> Unit,
+    onUrlClick: (String) -> Unit,
     onBodyClick: (Int, Boolean) -> Unit
 ) {
 
@@ -67,7 +68,8 @@ fun GroupedByAppsScreen(
                 resetQuery = {
                     navController.navigateUp()
                     resetQuery()
-                }
+                },
+                onUrlClick = onUrlClick
             )
         }
     }
@@ -82,6 +84,7 @@ fun ClickedAppScreen(
     onShareClick: (String) -> Unit,
     onDeleteClick: (Int) -> Unit,
     onCopyClick: (String) -> Unit,
+    onUrlClick: (String) -> Unit,
     resetQuery: () -> Unit,
     onBodyClick: (Int, Boolean) -> Unit
 ) {
@@ -125,6 +128,7 @@ fun ClickedAppScreen(
                     id = R.string.search_notifications_in_selected_app,
                     packageName.getAppName(context = context)
                 ),
+                onUrlClick = onUrlClick,
                 errorMessage = stringResource(id = R.string.no_notifications_available_yet)
             )
         }

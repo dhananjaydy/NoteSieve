@@ -34,15 +34,18 @@ class DeleteViewModel @Inject constructor(
     private val _selectedTimeFrame = MutableStateFlow("Last 7 days")
 
     private val appModelListFlow = repository.getAppModels().flowOn(defaultDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
 
         viewModelScope.launch(ioDispatcher) {
             appModelListFlow.collect { appModels ->
-                _selectedApps.update { currentMap ->
-                    appModels.associate { appModel ->
-                        appModel.packageName to (currentMap[appModel.packageName] ?: false)
+
+                if (appModels != null) {
+                    _selectedApps.update { currentMap ->
+                        appModels.associate { appModel ->
+                            appModel.packageName to (currentMap[appModel.packageName] ?: false)
+                        }
                     }
                 }
             }
@@ -67,10 +70,14 @@ class DeleteViewModel @Inject constructor(
         _selectedTimeFrame
     ) { appModelList, searchQuery, selectAll, selectedApps, selectedTimeFrame ->
 
+        if (appModelList == null) {
+            return@combine UiDataState.Loading
+        }
+
         val filteredAppModels = filterAppNames(appModelList, searchQuery)
 
         when {
-            appModelList.isEmpty() -> UiDataState.Loading
+
             filteredAppModels.isEmpty() -> UiDataState.Empty(
                 DeleteScreenUiState(
                     searchQuery = searchQuery,
@@ -162,4 +169,3 @@ class DeleteViewModel @Inject constructor(
         }
     }
 }
-

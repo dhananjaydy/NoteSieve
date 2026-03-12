@@ -17,6 +17,7 @@ fun StarredScreen(
     onShareClick: (String) -> Unit,
     onCopyClick: (String) -> Unit,
     onDeleteClick: (Int) -> Unit,
+    onUrlClick: (String) -> Unit,
     onBodyClick: (Int, Boolean) -> Unit
 ) {
 
@@ -47,6 +48,7 @@ fun StarredScreen(
                 onCopyClick = onCopyClick,
                 onDeleteClick = onDeleteClick,
                 onBodyClick = onBodyClick,
+                onUrlClick = onUrlClick,
                 hint = stringResource(id = R.string.search_the_starred_notifications),
                 errorMessage = stringResource(id = R.string.no_starred_notifications_available_yet)
             )

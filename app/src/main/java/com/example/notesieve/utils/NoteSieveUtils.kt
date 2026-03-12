@@ -8,10 +8,14 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.text.format.DateUtils
 import com.example.notesieve.R
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.core.graphics.createBitmap
+
 
 // this should ideally be fetched from a remote source but will keep it constant for the time being
 const val FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfyBY2IPc0Jl1CId_Pto9WlVPPk14y-a61CLkfr1SfDHRw4TA/viewform?vc=0&c=0&w=1&flr=0"
@@ -22,7 +26,7 @@ fun Drawable.toBitmap(): Bitmap {
         return this.bitmap
     }
 
-    val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(intrinsicWidth, intrinsicHeight)
     val canvas = android.graphics.Canvas(bitmap)
     setBounds(0, 0, canvas.width, canvas.height)
     draw(canvas)
@@ -32,10 +36,34 @@ fun Drawable.toBitmap(): Bitmap {
 
 fun Context.epochLongToString(timestamp: Long): String {
 
-    val date = Date(timestamp)
-    val formatPattern = getString(R.string.timestamp_to_date_time_format)
-    val formatter = SimpleDateFormat(formatPattern, Locale.getDefault())
-    return formatter.format(date)
+    val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("MMM d", Locale.getDefault())
+
+    val calendarNow = Calendar.getInstance()
+    val calendarThen = Calendar.getInstance().apply {
+        timeInMillis = timestamp
+    }
+
+    val time = timeFormat.format(Date(timestamp))
+
+    return when {
+        DateUtils.isToday(timestamp) -> {
+            getString(R.string.today_at, time)
+        }
+
+        DateUtils.isToday(timestamp + DateUtils.DAY_IN_MILLIS) -> {
+            getString(R.string.yesterday_at, time)
+        }
+
+        calendarNow.get(Calendar.YEAR) == calendarThen.get(Calendar.YEAR) -> {
+            getString(R.string.at, dateFormat.format(Date(timestamp)), time)
+        }
+
+        else -> {
+            SimpleDateFormat(getString(R.string.mmm_d_yyyy_at_h_mm_a), Locale.getDefault())
+                .format(Date(timestamp))
+        }
+    }
 }
 
 fun String.getAppName(context: Context): String {
@@ -44,7 +72,7 @@ fun String.getAppName(context: Context): String {
         val applicationInfo = packageManager.getApplicationInfo(this, 0)
         packageManager.getApplicationLabel(applicationInfo).toString()
     } catch (e: PackageManager.NameNotFoundException) {
-        "Unknown App"
+        context.getString(R.string.unknown_app)
     }
 }
 
