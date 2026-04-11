@@ -1,4 +1,4 @@
-package com.example.notesieve
+package com.example.notesieve.utils
 
 import androidx.compose.runtime.Stable
 import com.example.notesieve.data.local.AppModel
@@ -25,3 +25,20 @@ data class DeleteScreenUiState(
     val searchQuery: String = ""
 )
 
+sealed interface UiDataState<out T> {
+    data object Loading : UiDataState<Nothing>
+    data class Empty<T>(val uiState: T) : UiDataState<T>
+    data class Success<T>(val uiState: T) : UiDataState<T>
+}
+
+sealed interface LinkClickAction {
+    data class OpenLink(val url: String) : LinkClickAction
+    data object InvalidUrl : LinkClickAction
+    data object NoApp : LinkClickAction
+}
+
+sealed interface LinkClickState {
+    data object Idle : LinkClickState
+    data class PerformingAction(val action: LinkClickAction) : LinkClickState
+    data object Completed : LinkClickState
+}

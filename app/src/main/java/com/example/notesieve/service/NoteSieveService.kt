@@ -9,12 +9,11 @@ import com.example.notesieve.data.local.NoteSieveEntity
 import com.example.notesieve.data.repository.NoteSieveRepository
 import com.example.notesieve.utils.getAppName
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @AndroidEntryPoint
 class NoteSieveService : NotificationListenerService() {
@@ -22,8 +21,9 @@ class NoteSieveService : NotificationListenerService() {
     @Inject
     lateinit var repository: NoteSieveRepository
 
-    private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
+    @Inject
+    @Named("DefaultDispatcher")
+    lateinit var defaultDispatcher: CoroutineDispatcher
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         super.onNotificationPosted(sbn)
@@ -32,7 +32,11 @@ class NoteSieveService : NotificationListenerService() {
 
         if (shouldCaptureNotification(sbn, notification, extras)) {
             val newNotification = createNoteSieveEntity(sbn, extras)
-            serviceScope.launch { repository.addNotification(newNotification) }
+
+            CoroutineScope(defaultDispatcher).launch {
+                repository.addNotification(newNotification)
+            }
+
         }
     }
 
@@ -82,12 +86,6 @@ class NoteSieveService : NotificationListenerService() {
             inboxLines?.isNotEmpty() == true -> inboxLines
             else -> text
         }
-    }
-
-    override fun onDestroy() {
-        serviceJob.cancel()
-        serviceScope.cancel()
-        super.onDestroy()
     }
 
     companion object {

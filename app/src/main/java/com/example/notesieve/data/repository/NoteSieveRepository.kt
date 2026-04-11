@@ -2,13 +2,15 @@ package com.example.notesieve.data.repository
 
 import android.content.pm.PackageManager
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.example.notesieve.data.local.AppModel
 import com.example.notesieve.data.local.NoteSieveDao
 import com.example.notesieve.data.local.NoteSieveEntity
 import com.example.notesieve.utils.toBitmap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -22,20 +24,16 @@ class NoteSieveRepositoryImpl @Inject constructor(
     @Named("DefaultDispatcher") private val defaultDispatcher: CoroutineDispatcher
 ) : NoteSieveRepository {
 
-    override fun getAllNotifications(): Flow<List<NoteSieveEntity>> {
-        return noteSieveDao.getAllNotifications()
-    }
-
     override suspend fun starNotification(notificationId: Int) {
-        noteSieveDao.starNotification(notificationId)
+        withContext(ioDispatcher) {
+            noteSieveDao.starNotification(notificationId)
+        }
     }
 
     override suspend fun unstarNotification(notificationId: Int) {
-        noteSieveDao.unstarNotification(notificationId)
-    }
-
-    override fun getAllStarredNotifications(): Flow<List<NoteSieveEntity>> {
-        return noteSieveDao.getAllStarredNotifications()
+        withContext(ioDispatcher) {
+            noteSieveDao.unstarNotification(notificationId)
+        }
     }
 
     override suspend fun addNotification(notification: NoteSieveEntity) {
@@ -46,7 +44,9 @@ class NoteSieveRepositoryImpl @Inject constructor(
         return noteSieveDao.getAppModels().map { appModelList ->
             appModelList.map { appModelData ->
                 val appIcon = try {
-                    appPackageManager.getApplicationIcon(appModelData.packageName).toBitmap().asImageBitmap()
+                    appPackageManager.getApplicationIcon(appModelData.packageName)
+                        .toBitmap()
+                        .asImageBitmap()
                 } catch (e: PackageManager.NameNotFoundException) {
                     null
                 }
@@ -64,18 +64,8 @@ class NoteSieveRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun fetchNotificationsForApp(packageName: String): List<NoteSieveEntity> {
-        return withContext(defaultDispatcher) {
-            packageName.let { name ->
-                getAllNotifications().first().filter { it.packageName == name }
-            }
-        }
-    }
-
     override suspend fun deleteNotification(notificationId: Int) {
-        withContext(ioDispatcher) {
-            noteSieveDao.deleteNotification(notificationId)
-        }
+        withContext(ioDispatcher) { noteSieveDao.deleteNotification(notificationId) }
     }
 
     override fun getAppNamesWithNotifications(): Flow<List<String>> {
@@ -87,6 +77,33 @@ class NoteSieveRepositoryImpl @Inject constructor(
             noteSieveDao.deleteNotificationsForApps(packageNames, startTime)
         }
     }
+
+    private fun String.asLikeQuery(): String =
+        if (isEmpty()) "" else "%$this%"
+
+    override fun getAllNotificationsPaged(query: String): Flow<PagingData<NoteSieveEntity>> =
+        Pager(pagingConfig()) {
+            noteSieveDao.getAllNotificationsPaged(query.asLikeQuery())
+        }.flow
+
+    override fun getAllStarredNotificationsPaged(query: String): Flow<PagingData<NoteSieveEntity>> =
+        Pager(pagingConfig()) {
+            noteSieveDao.getAllStarredNotificationsPaged(query.asLikeQuery())
+        }.flow
+
+    override fun getNotificationsForAppPaged(
+        packageName: String,
+        query: String
+    ): Flow<PagingData<NoteSieveEntity>> =
+        Pager(pagingConfig()) {
+            noteSieveDao.getNotificationsForAppPaged(packageName, query.asLikeQuery())
+        }.flow
+
+    private fun pagingConfig() = PagingConfig(
+        pageSize = 20,
+        prefetchDistance = 5,
+        enablePlaceholders = false
+    )
 }
 
 private fun generateCustomKey(packageName: String, notificationCount: Int) =
@@ -95,14 +112,15 @@ private fun generateCustomKey(packageName: String, notificationCount: Int) =
 
 interface NoteSieveRepository {
 
-    fun getAllNotifications(): Flow<List<NoteSieveEntity>>
     suspend fun starNotification(notificationId: Int)
     suspend fun unstarNotification(notificationId: Int)
-    fun getAllStarredNotifications(): Flow<List<NoteSieveEntity>>
     suspend fun addNotification(notification: NoteSieveEntity)
     fun getAppModels(): Flow<List<AppModel>>
-    suspend fun fetchNotificationsForApp(packageName: String): List<NoteSieveEntity>
     suspend fun deleteNotification(notificationId: Int)
     fun getAppNamesWithNotifications(): Flow<List<String>>
     suspend fun deleteNotificationsForApps(packageNames: List<String>, startTime: Long): Int
+    fun getAllNotificationsPaged(query: String = ""): Flow<PagingData<NoteSieveEntity>>
+    fun getAllStarredNotificationsPaged(query: String = ""): Flow<PagingData<NoteSieveEntity>>
+    fun getNotificationsForAppPaged(packageName: String, query: String = ""): Flow<PagingData<NoteSieveEntity>>
+
 }

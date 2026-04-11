@@ -39,4 +39,6 @@
     <string name="yesterday_at">Yesterday at %1$s</string>
     <string name="at">%1$s at %2$s</string>
     <string name="mmm_d_yyyy_at_h_mm_a">MMM d yyyy \'at\' h:mm a</string>
+    <string name="invalid_url_please_check_the_link">Invalid URL. Please check the link.</string>
+    <string name="no_app_available_to_open_the_link">No app available to open the link.</string>
 </resources>

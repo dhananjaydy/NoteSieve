@@ -1,6 +1,5 @@
 package com.example.notesieve.ui.homescreen.subscreens
 
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,6 +43,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.notesieve.R
 import com.example.notesieve.ui.NoteSieveTabs
 import com.example.notesieve.ui.gridFilledIcon
@@ -53,12 +52,12 @@ import com.example.notesieve.ui.homescreen.subscreens.all.AllScreen
 import com.example.notesieve.ui.homescreen.subscreens.grouped.GroupedByAppsScreen
 import com.example.notesieve.ui.homescreen.subscreens.starred.StarredScreen
 import com.example.notesieve.ui.homescreen.viewmodel.HomeViewModel
-import com.example.notesieve.ui.homescreen.viewmodel.LinkClickAction
-import com.example.notesieve.ui.homescreen.viewmodel.LinkClickState
 import com.example.notesieve.ui.homescreen.viewmodel.Screen
 import com.example.notesieve.ui.homescreen.viewmodel.ToggleUpdation
 import com.example.notesieve.ui.listFilledIcon
 import com.example.notesieve.ui.listOutlinedIcon
+import com.example.notesieve.utils.LinkClickAction
+import com.example.notesieve.utils.LinkClickState
 import com.example.notesieve.utils.clipToClipboard
 import com.example.notesieve.utils.openChooser
 import kotlinx.coroutines.launch
@@ -76,7 +75,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navController: NavHostController = rememberNavController()
 ) {
-
     val bottomNavigationItems = remember {
         listOf(
             HomeScreenTabs.All,
@@ -96,23 +94,18 @@ fun HomeScreen(
                 when (state.action) {
                     LinkClickAction.InvalidUrl -> {
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Invalid URL. Please check the link.")
+                            snackbarHostState.showSnackbar(context.getString(R.string.invalid_url_please_check_the_link))
                         }
                     }
                     LinkClickAction.NoApp -> {
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar("No app available to open the link.")
+                            snackbarHostState.showSnackbar(context.getString(R.string.no_app_available_to_open_the_link))
                         }
                     }
-                    is LinkClickAction.OpenLink -> {
-                        viewModel.openLink(state.action.url)
-                    }
+                    is LinkClickAction.OpenLink -> viewModel.openLink(state.action.url)
                 }
             }
-
-            LinkClickState.Completed -> {
-                viewModel.resetState()
-            }
+            LinkClickState.Completed -> viewModel.resetState()
             LinkClickState.Idle -> Unit
         }
     }
@@ -137,82 +130,73 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = innerPadding.calculateBottomPadding())
-
         ) {
             composable(route = HomeScreenTabs.All.route) {
-                val screenState by viewModel.allNotificationsState.collectAsStateWithLifecycle()
+                val screenState = viewModel.allNotificationsPaged.collectAsLazyPagingItems()
+                val searchQuery by viewModel.allSearchQuery.collectAsStateWithLifecycle()
+
                 AllScreen(
                     screenState = screenState,
+                    searchQuery = searchQuery,
                     onStarClick = { id, isFavorite ->
                         viewModel.handleStarClick(id, isFavorite)
                     },
                     onSearch = { viewModel.updateSearchQuery(Screen.ALL, it) },
                     onDeleteClick = viewModel::deleteNotification,
-                    onCopyClick = { notification ->
-                        clipToClipboard(context, notification)
-                    },
-                    onShareClick = { notification ->
-                        openChooser(context, notification)
-                    },
+                    onCopyClick = { clipToClipboard(context, it) },
+                    onShareClick = { openChooser(context, it) },
                     onBodyClick = { id, showOptions ->
                         viewModel.updateOptionsVisibility(ToggleUpdation.ALL, showOptions, id)
                     },
                     onUrlClick = {
-                        Log.d(TAG, "HomeScreen: onLinkClick $it")
                         viewModel.onLinkClicked(it)
                     }
                 )
             }
+
             composable(route = HomeScreenTabs.Grouped.route) {
                 val gridState by viewModel.gridAppsState.collectAsStateWithLifecycle()
-                val listState by viewModel.clickedAppState.collectAsStateWithLifecycle()
+                val listState = viewModel.clickedAppPaged.collectAsLazyPagingItems()
+                val listSearchQuery by viewModel.groupedListSearchQuery.collectAsStateWithLifecycle()
+
                 GroupedByAppsScreen(
                     gridScreenState = gridState,
                     listScreenState = listState,
+                    listSearchQuery = listSearchQuery,
                     onGridSearch = { viewModel.updateSearchQuery(Screen.GROUPED_GRID, it) },
                     onListSearch = { viewModel.updateSearchQuery(Screen.GROUPED_LIST, it) },
                     onAppSelected = viewModel::setSelectedAppModel,
                     onStarClick = { id, isFavorite ->
-                        viewModel.handleStarClick(
-                            id,
-                            isFavorite
-                        )
+                        viewModel.handleStarClick(id, isFavorite)
                     },
                     onShareClick = { openChooser(context, it) },
                     onCopyClick = { clipToClipboard(context, it) },
                     onDeleteClick = viewModel::deleteNotification,
                     onBodyClick = { id, showOptions ->
-                        viewModel.updateOptionsVisibility(
-                            ToggleUpdation.CLICKED,
-                            showOptions,
-                            id
-                        )
+                        viewModel.updateOptionsVisibility(ToggleUpdation.CLICKED, showOptions, id)
                     },
                     resetQuery = {
                         viewModel.updateSearchQuery(Screen.GROUPED_LIST, "")
                         viewModel.resetSelectedApp()
-
                     },
-                    onUrlClick = {
-                        viewModel.onLinkClicked(it)
-                    }
+                    onUrlClick = { viewModel.onLinkClicked(it) }
                 )
             }
+
             composable(route = HomeScreenTabs.Starred.route) {
-                val screenState by viewModel.starredNotificationsState.collectAsStateWithLifecycle()
+                val screenState = viewModel.starredNotificationsPaged.collectAsLazyPagingItems()
+                val searchQuery by viewModel.starredSearchQuery.collectAsStateWithLifecycle()
+
                 StarredScreen(
                     screenState = screenState,
+                    searchQuery = searchQuery,
                     onStarClick = { id, isStarred ->
                         viewModel.handleStarClick(id, isStarred)
                     },
                     onSearch = { viewModel.updateSearchQuery(Screen.STARRED, it) },
                     onDeleteClick = viewModel::deleteNotification,
-                    onCopyClick = { notification ->
-                        clipToClipboard(context, notification)
-                    },
-                    onShareClick = { notification ->
-                        openChooser(context, notification)
-                    },
+                    onCopyClick = { clipToClipboard(context, it) },
+                    onShareClick = { openChooser(context, it) },
                     onBodyClick = { id, showOptions ->
                         viewModel.updateOptionsVisibility(
                             ToggleUpdation.STARRED,
@@ -220,15 +204,12 @@ fun HomeScreen(
                             id
                         )
                     },
-                    onUrlClick = {
-                        viewModel.onLinkClicked(it)
-                    }
+                    onUrlClick = { viewModel.onLinkClicked(it) }
                 )
             }
         }
     }
 }
-
 
 @Composable
 fun HomeNavigation(
@@ -236,7 +217,6 @@ fun HomeNavigation(
     items: List<HomeScreenTabs>,
     modifier: Modifier = Modifier
 ) {
-
     val windowInsets = WindowInsets.navigationBars
 
     NavigationBar(
@@ -261,17 +241,15 @@ fun HomeNavigation(
                 },
                 alwaysShowLabel = true,
                 label = { Text(text = stringResource(screen.resourceId)) },
-            onClick = {
+                onClick = {
                     navController.navigate(screen.route) {
                         navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
-                            }
+                            popUpTo(route) { saveState = true }
                         }
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
+                }
             )
         }
     }

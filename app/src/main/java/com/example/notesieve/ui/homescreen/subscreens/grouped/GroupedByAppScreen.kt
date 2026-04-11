@@ -9,19 +9,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import com.example.notesieve.R
-import com.example.notesieve.UiGridState
-import com.example.notesieve.UiListState
+import com.example.notesieve.data.local.NoteSieveModel
 import com.example.notesieve.ui.homescreen.commons.FullScreenLoader
 import com.example.notesieve.ui.homescreen.commons.NotificationsEmptyScreen
 import com.example.notesieve.ui.homescreen.commons.NotificationsSuccessScreen
-import com.example.notesieve.ui.homescreen.viewmodel.UiDataState
+import com.example.notesieve.utils.UiDataState
+import com.example.notesieve.utils.UiGridState
 import com.example.notesieve.utils.getAppName
 
 @Composable
 fun GroupedByAppsScreen(
     gridScreenState: UiDataState<UiGridState>,
-    listScreenState: UiDataState<UiListState>,
+    listScreenState: LazyPagingItems<NoteSieveModel>,
+    listSearchQuery: String,
     onGridSearch: (String) -> Unit,
     onListSearch: (String) -> Unit,
     onAppSelected: (String) -> Unit,
@@ -33,12 +36,11 @@ fun GroupedByAppsScreen(
     onUrlClick: (String) -> Unit,
     onBodyClick: (Int, Boolean) -> Unit
 ) {
-
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = GroupedScreen.AppGrid.route) {
 
-        composable(GroupedScreen.AppGrid.route) { it ->
+        composable(GroupedScreen.AppGrid.route) {
             GroupedByGrid(
                 screenState = gridScreenState,
                 onGridSearch = { onGridSearch(it) },
@@ -48,16 +50,17 @@ fun GroupedByAppsScreen(
                 }
             )
         }
+
         composable(
             GroupedScreen.Notifications.route,
-            arguments = listOf(navArgument(name = "packageName") { type = NavType.StringType})
+            arguments = listOf(navArgument("packageName") { type = NavType.StringType })
         ) { navBackStackEntry ->
-            val packageName = navBackStackEntry.arguments?.getString("packageName") ?: stringResource(
-                R.string.unknown
-            )
+            val packageName = navBackStackEntry.arguments?.getString("packageName")
+                ?: stringResource(R.string.unknown)
 
             ClickedAppScreen(
                 screenState = listScreenState,
+                searchQuery = listSearchQuery,
                 packageName = packageName,
                 onListSearch = onListSearch,
                 onStarClick = onStarClick,
@@ -77,7 +80,8 @@ fun GroupedByAppsScreen(
 
 @Composable
 fun ClickedAppScreen(
-    screenState: UiDataState<UiListState>,
+    screenState: LazyPagingItems<NoteSieveModel>,
+    searchQuery: String,
     packageName: String,
     onListSearch: (String) -> Unit,
     onStarClick: (Int, Boolean) -> Unit,
@@ -88,35 +92,37 @@ fun ClickedAppScreen(
     resetQuery: () -> Unit,
     onBodyClick: (Int, Boolean) -> Unit
 ) {
-
     val context = LocalContext.current
 
-    BackHandler {
-        resetQuery()
-    }
+    BackHandler { resetQuery() }
 
-    when (screenState) {
-        is UiDataState.Empty -> {
-            val query = screenState.uiState.searchQuery
+    when {
 
+        screenState.loadState.refresh is LoadState.Loading && screenState.itemCount == 0 -> {
+            FullScreenLoader()
+        }
+
+        screenState.loadState.refresh is LoadState.Error && screenState.itemCount == 0 -> {
             NotificationsEmptyScreen(
-                query = query,
+                query = searchQuery,
                 onSearch = onListSearch,
                 hint = stringResource(id = R.string.search_all_notifications),
                 errorMessage = stringResource(id = R.string.no_notifications_available_yet)
             )
         }
 
-        UiDataState.Loading ->  {
-            FullScreenLoader()
+        screenState.itemCount == 0 -> {
+            NotificationsEmptyScreen(
+                query = searchQuery,
+                onSearch = onListSearch,
+                hint = stringResource(id = R.string.search_all_notifications),
+                errorMessage = stringResource(id = R.string.no_notifications_available_yet)
+            )
         }
-        is UiDataState.Success -> {
 
-            val notifications = screenState.uiState.notifications
-            val searchQuery = screenState.uiState.searchQuery
-
+        else -> {
             NotificationsSuccessScreen(
-                notifications = notifications,
+                notifications = screenState,
                 searchQuery = searchQuery,
                 onStarClick = onStarClick,
                 onSearch = onListSearch,
@@ -134,35 +140,29 @@ fun ClickedAppScreen(
         }
     }
 }
+
 @Composable
 fun GroupedByGrid(
     screenState: UiDataState<UiGridState>,
     onGridSearch: (String) -> Unit,
     onAppSelected: (String) -> Unit,
 ) {
-
     when (screenState) {
         is UiDataState.Empty -> {
-            val query = screenState.uiState.searchQuery
-            
             AppsEmptyScreen(
-                query = query,
+                query = screenState.uiState.searchQuery,
                 hint = stringResource(id = R.string.search_installed_apps),
                 emptyQueryErrorMessage = stringResource(id = R.string.no_notifications_available_yet),
                 onSearch = { onGridSearch(it) }
             )
         }
-
         UiDataState.Loading -> {
             FullScreenLoader()
         }
         is UiDataState.Success -> {
-            val appModels = screenState.uiState.appModels
-            val searchQuery = screenState.uiState.searchQuery
-
             AppsSuccessScreen(
-                appModels = appModels,
-                searchQuery = searchQuery,
+                appModels = screenState.uiState.appModels,
+                searchQuery = screenState.uiState.searchQuery,
                 onSearch = { onGridSearch(it) },
                 onAppSelected = { onAppSelected(it) },
                 hint = stringResource(id = R.string.search_installed_apps),

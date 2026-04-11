@@ -2,16 +2,18 @@ package com.example.notesieve.ui.homescreen.subscreens.starred
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import com.example.notesieve.R
-import com.example.notesieve.UiListState
+import com.example.notesieve.data.local.NoteSieveModel
 import com.example.notesieve.ui.homescreen.commons.FullScreenLoader
 import com.example.notesieve.ui.homescreen.commons.NotificationsEmptyScreen
 import com.example.notesieve.ui.homescreen.commons.NotificationsSuccessScreen
-import com.example.notesieve.ui.homescreen.viewmodel.UiDataState
 
 @Composable
 fun StarredScreen(
-    screenState: UiDataState<UiListState>,
+    screenState: LazyPagingItems<NoteSieveModel>,
+    searchQuery: String,
     onStarClick: (Int, Boolean) -> Unit,
     onSearch: (String) -> Unit,
     onShareClick: (String) -> Unit,
@@ -21,26 +23,30 @@ fun StarredScreen(
     onBodyClick: (Int, Boolean) -> Unit
 ) {
 
-    when (screenState) {
-        is UiDataState.Empty -> {
-            val query = screenState.uiState.searchQuery
+    when {
+
+        screenState.loadState.refresh is LoadState.Loading && screenState.itemCount == 0 -> {
+            FullScreenLoader()
+        }
+        screenState.loadState.refresh is LoadState.Error && screenState.itemCount == 0 -> {
             NotificationsEmptyScreen(
-                query = query,
+                query = searchQuery,
                 onSearch = onSearch,
                 hint = stringResource(id = R.string.search_the_starred_notifications),
                 errorMessage = stringResource(id = R.string.no_starred_notifications_available_yet)
             )
         }
-        UiDataState.Loading -> {
-            FullScreenLoader()
+        screenState.itemCount == 0 -> {
+            NotificationsEmptyScreen(
+                query = searchQuery,
+                onSearch = onSearch,
+                hint = stringResource(id = R.string.search_the_starred_notifications),
+                errorMessage = stringResource(id = R.string.no_starred_notifications_available_yet)
+            )
         }
-        is UiDataState.Success -> {
-
-            val notifications = screenState.uiState.notifications
-            val searchQuery = screenState.uiState.searchQuery
-
+        else -> {
             NotificationsSuccessScreen(
-                notifications = notifications,
+                notifications = screenState,
                 searchQuery = searchQuery,
                 onStarClick = onStarClick,
                 onSearch = onSearch,

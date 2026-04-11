@@ -40,13 +40,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.example.notesieve.DeleteScreenUiState
 import com.example.notesieve.R
 import com.example.notesieve.ui.NoteSieveTabs
 import com.example.notesieve.ui.homescreen.commons.AppIcon
 import com.example.notesieve.ui.homescreen.commons.FullScreenLoader
 import com.example.notesieve.ui.homescreen.commons.SearchBar
-import com.example.notesieve.ui.homescreen.viewmodel.UiDataState
+import com.example.notesieve.utils.DeleteScreenUiState
+import com.example.notesieve.utils.UiDataState
 
 fun NavGraphBuilder.deleteScreen() {
     composable(NoteSieveTabs.Delete.name) {

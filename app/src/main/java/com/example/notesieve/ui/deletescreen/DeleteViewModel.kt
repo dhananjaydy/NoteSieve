@@ -2,10 +2,10 @@ package com.example.notesieve.ui.deletescreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.notesieve.DeleteScreenUiState
+import com.example.notesieve.utils.DeleteScreenUiState
 import com.example.notesieve.data.local.AppModel
 import com.example.notesieve.data.repository.NoteSieveRepository
-import com.example.notesieve.ui.homescreen.viewmodel.UiDataState
+import com.example.notesieve.utils.UiDataState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
